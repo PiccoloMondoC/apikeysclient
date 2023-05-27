@@ -32,16 +32,19 @@ type ValidateResponse struct {
 	IsValid bool `json:"is_valid"`
 }
 
-func NewClient(baseURL string, token string, httpClient *http.Client) *Client {
-	if httpClient == nil {
-		httpClient = &http.Client{
+func NewClient(baseURL string, token string, httpClient ...*http.Client) *Client {
+	var client *http.Client
+	if len(httpClient) > 0 {
+		client = httpClient[0]
+	} else {
+		client = &http.Client{
 			Timeout: time.Second * 10,
 		}
 	}
 
 	return &Client{
 		BaseURL:    baseURL,
-		HttpClient: httpClient,
+		HttpClient: client,
 		Token:      token,
 	}
 }
