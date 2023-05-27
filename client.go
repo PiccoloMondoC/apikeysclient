@@ -34,7 +34,7 @@ type ValidateResponse struct {
 
 func NewClient(baseURL string, token string, httpClient ...*http.Client) *Client {
 	var client *http.Client
-	if len(httpClient) > 0 {
+	if len(httpClient) > 0 && httpClient[0] != nil {
 		client = httpClient[0]
 	} else {
 		client = &http.Client{
