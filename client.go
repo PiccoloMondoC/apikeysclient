@@ -1,3 +1,4 @@
+// sky-apikeys/pkg/clientlib/apikeysclient/client.go
 package apikeysclient
 
 import (
@@ -15,6 +16,7 @@ import (
 type Client struct {
 	BaseURL    string
 	HttpClient *http.Client
+	Token      string
 }
 
 type APIKey struct {
@@ -31,7 +33,7 @@ type ValidateResponse struct {
 	IsValid bool `json:"is_valid"`
 }
 
-func NewClient(baseURL string, httpClient ...*http.Client) *Client {
+func NewClient(baseURL string, token string, httpClient ...*http.Client) *Client {
 	var client *http.Client
 	if len(httpClient) > 0 {
 		client = httpClient[0]
@@ -44,6 +46,7 @@ func NewClient(baseURL string, httpClient ...*http.Client) *Client {
 	return &Client{
 		BaseURL:    baseURL,
 		HttpClient: client,
+		Token:      token,
 	}
 }
 
@@ -54,7 +57,16 @@ func (c *Client) CreateAPIKey(apiKey APIKey) (APIKey, error) {
 	}
 
 	url := fmt.Sprintf("%s/apikeys", c.BaseURL)
-	resp, err := c.HttpClient.Post(url, "application/json", bytes.NewBuffer(apiKeyJSON))
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(apiKeyJSON))
+	if err != nil {
+		return APIKey{}, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+c.Token)
+
+	resp, err := c.HttpClient.Do(req)
 	if err != nil {
 		return APIKey{}, err
 	}
@@ -82,6 +94,9 @@ func (c *Client) GetAPIKeyByID(id uuid.UUID) (*APIKey, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Add the Authorization header with the Bearer token
+	req.Header.Set("Authorization", "Bearer "+c.Token)
 
 	// Send the request
 	res, err := c.HttpClient.Do(req)
@@ -113,6 +128,9 @@ func (c *Client) GetAPIKeyByAPIKey(apiKey string) (*APIKey, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Add the Authorization header with the Bearer token
+	req.Header.Set("Authorization", "Bearer "+c.Token)
 
 	resp, err := c.HttpClient.Do(req)
 	if err != nil {
@@ -149,6 +167,9 @@ func (c *Client) UpdateAPIKey(key *APIKey) (*APIKey, error) {
 	}
 	req.Header.Set("Content-Type", "application/json")
 
+	// Add the Authorization header with the Bearer token
+	req.Header.Set("Authorization", "Bearer "+c.Token)
+
 	// 4. Send the request using the HTTP client
 	resp, err := c.HttpClient.Do(req)
 	if err != nil {
@@ -180,6 +201,9 @@ func (c *Client) DeleteAPIKey(id uuid.UUID) error {
 		return fmt.Errorf("create DELETE request: %w", err)
 	}
 
+	// Add the Authorization header with the Bearer token
+	req.Header.Set("Authorization", "Bearer "+c.Token)
+
 	// Send the request
 	resp, err := c.HttpClient.Do(req)
 	if err != nil {
@@ -205,6 +229,9 @@ func (c *Client) ListAPIKeys() ([]APIKey, error) {
 	if err != nil {
 		return nil, fmt.Errorf("create GET request: %w", err)
 	}
+
+	// Add the Authorization header with the Bearer token
+	req.Header.Set("Authorization", "Bearer "+c.Token)
 
 	// Send the request
 	resp, err := c.HttpClient.Do(req)
@@ -238,6 +265,9 @@ func (c *Client) ValidateAPIKey(apikey string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("create GET request: %w", err)
 	}
+
+	// Add the Authorization header with the Bearer token
+	req.Header.Set("Authorization", "Bearer "+c.Token)
 
 	// Send the request
 	resp, err := c.HttpClient.Do(req)
