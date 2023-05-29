@@ -26,6 +26,7 @@ type APIKey struct {
 	UpdatedAt        time.Time `db:"updated_at"`
 	Valid            bool      `db:"valid"`
 	IsActive         bool      `db:"is_active"`
+	ServiceName      string    `db:"service_name"`
 }
 
 type ValidateResponse struct {
